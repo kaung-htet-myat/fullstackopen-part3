@@ -1,28 +1,41 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
 
+morgan.token('body', (req) => {
+    if (req.method == "POST") {
+        if (req.body) {
+            return JSON.stringify(req.body)
+        } else {
+            return "Body is empty!"
+        }
+    }
+})
+
+app.use(morgan(':method :url :status :body :res[content-length] - :response-time ms'))
+
 let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
+    {
+        "id": 1,
+        "name": "Arto Hellas",
+        "number": "040-123456"
     },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
+    {
+        "id": 2,
+        "name": "Ada Lovelace",
+        "number": "39-44-5323523"
     },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
+    {
+        "id": 3,
+        "name": "Dan Abramov",
+        "number": "12-43-234345"
     },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
+    {
+        "id": 4,
+        "name": "Mary Poppendieck",
+        "number": "39-23-6423122"
     }
 ]
 
@@ -81,10 +94,10 @@ app.post("/api/persons/", (request, response) => {
             name: body.name,
             number: body.number
         }
-    
+
         persons = persons.concat(person)
         return response.json(person)
-        
+
     } else {
         return response.status(400).json({
             error: `${body.name} is already in the phonebook!`

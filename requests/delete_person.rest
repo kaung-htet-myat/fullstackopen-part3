@@ -1,3 +1,1 @@
-DELETE http://localhost:3001/api/persons/28
-
-// GET http://localhost:3001/api/persons
+DELETE http://localhost:3001/api/persons/94
