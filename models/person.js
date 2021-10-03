@@ -10,12 +10,12 @@ mongoose.connect(url)
         console.log('Cannot connect to database', url);
     })
 
-const personSchema = mongoose.Schema({
+const personSchema = new mongoose.Schema({
     name: String,
     number: Number
 })
 personSchema.set('toJSON', {
-    transfrom: (document, returnedObject) => {
+    transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
         delete returnedObject._id
         delete returnedObject.__v
