@@ -1,11 +1,15 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+require('dotenv').config()
+const Person = require('./models/person')
 const app = express()
 
 app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
+
+const port = process.env.PORT
 
 morgan.token('body', (req) => {
     if (req.method == "POST") {
@@ -52,7 +56,14 @@ app.get("/", (request, response) => {
 })
 
 app.get("/api/persons", (request, response) => {
-    response.json(persons)
+    // response.json(persons)
+    Person.find({}).then(result => {
+        if (result) {
+            response.json(result)
+        } else {
+            console.log("No person found in the database");
+        }
+    })
 })
 
 app.get("/info", (request, response) => {
@@ -64,14 +75,15 @@ app.get("/info", (request, response) => {
 
 app.get("/api/persons/:id", (request, response) => {
     const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.statusMessage = "person requested cannot be found!"
-        response.status(404).end()
-    }
+    // const person = persons.find(person => person.id === id)
+    Person.findById(id)
+        .then(person => {
+            response.json(person)
+        })
+        .catch(error => {
+            response.statusMessage = "person requested cannot be found!"
+            response.status(404).end()
+        })
 })
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -91,24 +103,18 @@ app.post("/api/persons/", (request, response) => {
         })
     }
 
-    if (persons.every(person => person.name !== body.name)) {
-        const person = {
-            id: generateId(),
-            name: body.name,
-            number: body.number
-        }
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    })
 
-        persons = persons.concat(person)
-        return response.json(person)
-
-    } else {
-        return response.status(400).json({
-            error: `${body.name} is already in the phonebook!`
-        })
-    }
+    person.save().then(result => {
+        console.log(`Saved ${result.name} number ${result.number} to phonebook`)
+        response.json(result)
+    })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = port || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
