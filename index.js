@@ -12,29 +12,29 @@ app.use(express.json())
 const port = process.env.PORT
 
 morgan.token('body', (req) => {
-    if (req.method == "POST") {
+    if (req.method == 'POST') {
         if (req.body) {
             return JSON.stringify(req.body)
         } else {
-            return "Body is empty!"
+            return 'Body is empty!'
         }
     }
 })
 
 app.use(morgan(':method :url :status :body :res[content-length] - :response-time ms'))
 
-app.get("/", (request, response) => {
+app.get('/', (request, response) => {
     response.send('<h1>Hello, welcome to phonebook</h1>')
 })
 
-app.get("/api/persons", (request, response, next) => {
+app.get('/api/persons', (request, response, next) => {
     // response.json(persons)
     Person.find({})
         .then(result => {
             if (result) {
                 response.json(result)
             } else {
-                console.log("No person found in the database");
+                console.log('No person found in the database')
             }
         })
         .catch(error => {
@@ -42,7 +42,7 @@ app.get("/api/persons", (request, response, next) => {
         })
 })
 
-app.get("/info", (request, response) => {
+app.get('/info', (request, response) => {
     Person.find({})
         .then(results => {
             response.send(`
@@ -52,7 +52,7 @@ app.get("/info", (request, response) => {
         })
 })
 
-app.get("/api/persons/:id", (request, response, next) => {
+app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     Person.findById(id)
         .then(person => {
@@ -64,7 +64,7 @@ app.get("/api/persons/:id", (request, response, next) => {
         })
 })
 
-app.delete("/api/persons/:id", (request, response, next) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     Person.findByIdAndRemove(id)
         .then(result => {
@@ -75,7 +75,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
         })
 })
 
-app.post("/api/persons/", (request, response, next) => {
+app.post('/api/persons/', (request, response, next) => {
     const body = request.body
     console.log(body)
 
@@ -100,11 +100,11 @@ app.post("/api/persons/", (request, response, next) => {
         })
 })
 
-app.put("/api/persons/:id", (request, response, next) => {
+app.put('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     const body = request.body
 
-    console.log(id);
+    console.log(id)
 
     const person = {
         name: body.name,
@@ -121,19 +121,19 @@ app.put("/api/persons/:id", (request, response, next) => {
 })
 
 const unknownEndPoint = (request, response) => {
-    response.status(404).send({ error: "unknown endpoint" })
+    response.status(404).send({ error: 'unknown endpoint' })
 }
 
 app.use(unknownEndPoint)
 
 const errorHandler = (error, request, response, next) => {
-    console.log(error.name);
-    if (error.name === "TypeError") {
-        response.statusMessage = "person requested cannot be found!"
+    console.log(error.name)
+    if (error.name === 'TypeError') {
+        response.statusMessage = 'person requested cannot be found!'
         return response.status(404).end()
-    } else if (error.name === "CastError") {
-        return response.status(400).send({ error: "malformatted id" })
-    } else if (error.name === "ValidationError") {
+    } else if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
         return response.status(400).send({ error: error.message })
     }
     next(error)

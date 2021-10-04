@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 if (process.argv.length < 3) {
     // exit if the password is not provided
-    console.log("Please provide the password")
+    console.log('Please provide the password')
     process.exit(1)
 }
 
@@ -24,12 +24,12 @@ if (process.argv.length === 3) {
     // retrieve all persons from phonebook
     Person.find({}).then(result => {
         if (result) {
-            console.log("Phonebook:");
+            console.log('Phonebook:')
             result.forEach(person => {
                 console.log(`${person.name} ${person.number}`)
             })
         } else {
-            console.log("No person found in the phonebook");
+            console.log('No person found in the phonebook')
         }
         mongoose.connection.close()
     })

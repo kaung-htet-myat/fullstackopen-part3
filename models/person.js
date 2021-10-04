@@ -5,10 +5,10 @@ const url = process.env.MONGO_URL
 
 mongoose.connect(url)
     .then(response => {
-        console.log('Connected to database');
+        console.log('Connected to database')
     })
     .catch(error => {
-        console.log('Cannot connect to database', url);
+        console.log('Cannot connect to database', url)
     })
 
 const personSchema = new mongoose.Schema({
@@ -24,7 +24,7 @@ const personSchema = new mongoose.Schema({
         // min : 10000000
         validate:{
             validator: val => val.toString().length >= 8,
-            message: val => "Number must be 8 digits or longer"
+            message: val => 'Number must be 8 digits or longer'
         }
     }
 })
