@@ -1,16 +1,23 @@
 const express = require('express')
-const morgan = require('morgan')
 const cors = require('cors')
-require('dotenv').config()
+const mongoose = require('mongoose')
+const morgan = require('morgan')
+
 const Person = require('./models/person')
+const configs = require('./utils/config')
+const loggers = require('./utils/logger')
+const middlewares = require('./utils/middlewares')
+const personRouter = require('./controllers/persons')
 const app = express()
+
+const port = configs.PORT
+const url = configs.MONGO_URL
 
 app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
-const port = process.env.PORT
-
+// configure morgan logger
 morgan.token('body', (req) => {
     if (req.method == 'POST') {
         if (req.body) {
@@ -20,26 +27,20 @@ morgan.token('body', (req) => {
         }
     }
 })
-
 app.use(morgan(':method :url :status :body :res[content-length] - :response-time ms'))
 
+// connect to mongodb
+mongoose.connect(url)
+    .then(response => {
+        loggers.info('Connected to database')
+    })
+    .catch(error => {
+        loggers.info('Cannot connect to database', url)
+    })
+
+// routing
 app.get('/', (request, response) => {
     response.send('<h1>Hello, welcome to phonebook</h1>')
-})
-
-app.get('/api/persons', (request, response, next) => {
-    // response.json(persons)
-    Person.find({})
-        .then(result => {
-            if (result) {
-                response.json(result)
-            } else {
-                console.log('No person found in the database')
-            }
-        })
-        .catch(error => {
-            next(error)
-        })
 })
 
 app.get('/info', (request, response) => {
@@ -51,97 +52,14 @@ app.get('/info', (request, response) => {
             `)
         })
 })
+app.use('/api/persons', personRouter)
 
-app.get('/api/persons/:id', (request, response, next) => {
-    const id = request.params.id
-    Person.findById(id)
-        .then(person => {
-            response.json(person)
-        })
-        .catch(error => {
-            // console.log(error);
-            next(error)
-        })
-})
+// post process middlewares
+app.use(middlewares.unknownEndPoint)
+app.use(middlewares.errorHandler)
 
-app.delete('/api/persons/:id', (request, response, next) => {
-    const id = request.params.id
-    Person.findByIdAndRemove(id)
-        .then(result => {
-            response.status(204).end()
-        })
-        .catch(error => {
-            next(error)
-        })
-})
-
-app.post('/api/persons/', (request, response, next) => {
-    const body = request.body
-    console.log(body)
-
-    if (!body.name || !body.number) {
-        return response.status(400).json({
-            error: 'Your data is not complete. Send again with complete data!'
-        })
-    }
-
-    const person = new Person({
-        name: body.name,
-        number: body.number
-    })
-
-    person.save()
-        .then(result => {
-            console.log(`Saved ${result.name} number ${result.number} to phonebook`)
-            response.json(result)
-        })
-        .catch(error => {
-            next(error)
-        })
-})
-
-app.put('/api/persons/:id', (request, response, next) => {
-    const id = request.params.id
-    const body = request.body
-
-    console.log(id)
-
-    const person = {
-        name: body.name,
-        number: body.number
-    }
-
-    Person.findByIdAndUpdate(id, person, { new: true })
-        .then(result => {
-            response.json(result)
-        })
-        .catch(error => {
-            next(error)
-        })
-})
-
-const unknownEndPoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
-}
-
-app.use(unknownEndPoint)
-
-const errorHandler = (error, request, response, next) => {
-    console.log(error.name)
-    if (error.name === 'TypeError') {
-        response.statusMessage = 'person requested cannot be found!'
-        return response.status(404).end()
-    } else if (error.name === 'CastError') {
-        return response.status(400).send({ error: 'malformatted id' })
-    } else if (error.name === 'ValidationError') {
-        return response.status(400).send({ error: error.message })
-    }
-    next(error)
-}
-
-app.use(errorHandler)
-
+// listen requests
 const PORT = port || 3001
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    loggers.info(`Server running on port ${PORT}`)
 })
