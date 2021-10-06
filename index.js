@@ -3,18 +3,22 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
 
-const Person = require('./models/person')
-const configs = require('./utils/config')
-const loggers = require('./utils/logger')
-const middlewares = require('./utils/middlewares')
-const personRouter = require('./controllers/persons')
+const Person = require('./models/person') // Person model
+const configs = require('./utils/config') // Config functions
+const loggers = require('./utils/logger') // Loggers
+const middlewares = require('./utils/middlewares') // Middleware functions
+const personRouter = require('./controllers/persons') // Person route handlers
+
+// initialize server
 const app = express()
 
+// initialize config variables
 const port = configs.PORT
 const url = configs.MONGO_URL
 
+// pre-routing middlewares
 app.use(express.static('build'))
-app.use(cors())
+app.use(cors()) // only needed for frontend development server
 app.use(express.json())
 
 // configure morgan logger
@@ -54,7 +58,7 @@ app.get('/info', (request, response) => {
 })
 app.use('/api/persons', personRouter)
 
-// post process middlewares
+// post-routing middlewares
 app.use(middlewares.unknownEndPoint)
 app.use(middlewares.errorHandler)
 
